@@ -3,131 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="香港旅遊分帳計算工具 - 安全、簡單、快速的分帳計算">
-    <title>香港旅遊分帳計算器</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>🇭🇰 香港旅遊分帳</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-calculator"></i> 香港旅遊分帳計算器</h1>
-            <p>安全、簡單、快速的分帳計算工具</p>
-        </header>
+<body class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100">
+    <div id="app" class="p-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold text-center mb-2 text-gray-800">🇭🇰 香港旅遊分帳</h1>
+            <p class="text-center text-gray-600 mb-8">三天行程共同記帳小幫手</p>
 
-        <main>
-            <!-- 建立新分帳群組 -->
-            <section class="create-group">
-                <h2><i class="fas fa-plus-circle"></i> 建立新分帳群組</h2>
-                <form id="createGroupForm">
-                    <div class="form-group">
-                        <label for="groupName">群組名稱：</label>
-                        <input type="text" id="groupName" required placeholder="例如：香港四天三夜之旅">
+            <!-- 總覽 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600">總開支</p>
+                        <p class="text-3xl font-bold text-green-600" id="totalExpense">HK$ 0.00</p>
                     </div>
-                    <div class="form-group">
-                        <label for="currency">貨幣：</label>
-                        <select id="currency" required>
-                            <option value="HKD">港幣 (HKD)</option>
-                            <option value="TWD">台幣 (TWD)</option>
-                            <option value="USD">美元 (USD)</option>
+                    <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 成員管理 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <svg class="mr-2 w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    旅伴名單
+                </h2>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="newMemberInput" placeholder="輸入旅伴名字" 
+                           class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="addMember()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                        ➕ 新增
+                    </button>
+                </div>
+                <div id="membersList" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <!-- 新增開支 -->
+            <div id="expenseForm" class="bg-white rounded-lg shadow-lg p-6 mb-6" style="display: none;">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <svg class="mr-2 w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    記錄開支
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">誰付錢？</label>
+                        <select id="payerSelect" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">選擇付款人</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-users"></i> 建立群組
-                    </button>
-                </form>
-            </section>
-
-            <!-- 現有群組 -->
-            <section class="existing-groups" id="existingGroups" style="display: none;">
-                <h2><i class="fas fa-list"></i> 現有群組</h2>
-                <div id="groupsList"></div>
-            </section>
-
-            <!-- 分帳計算介面 -->
-            <section class="split-interface" id="splitInterface" style="display: none;">
-                <div class="group-header">
-                    <h2 id="currentGroupName"></h2>
-                    <div class="share-section">
-                        <button id="shareBtn" class="btn-secondary">
-                            <i class="fas fa-share"></i> 分享連結
-                        </button>
-                        <div id="shareUrl" class="share-url" style="display: none;"></div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">金額（港幣）</label>
+                        <input type="number" id="amountInput" placeholder="0.00" step="0.01"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">項目說明</label>
+                        <input type="text" id="descriptionInput" placeholder="例如：海洋公園門票"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">誰要分攤？</label>
+                        <div id="sharedByList" class="flex flex-wrap gap-2"></div>
+                    </div>
+                    <button onclick="addExpense()" class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 font-medium">
+                        新增開支
+                    </button>
                 </div>
+            </div>
 
-                <!-- 成員管理 -->
-                <div class="members-section">
-                    <h3><i class="fas fa-user-friends"></i> 成員管理</h3>
-                    <form id="addMemberForm">
-                        <div class="form-row">
-                            <input type="text" id="memberName" placeholder="成員姓名" required>
-                            <button type="submit" class="btn-primary">
-                                <i class="fas fa-user-plus"></i> 新增成員
-                            </button>
-                        </div>
-                    </form>
-                    <div id="membersList" class="members-list"></div>
+            <!-- 開支清單 -->
+            <div id="expensesSection" class="bg-white rounded-lg shadow-lg p-6 mb-6" style="display: none;">
+                <h2 class="text-2xl font-bold mb-4 flex items-center">
+                    <svg class="mr-2 w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                    開支記錄
+                </h2>
+                <div id="expensesList" class="space-y-3"></div>
+            </div>
+
+            <!-- 結算 -->
+            <div id="settlementSection" class="bg-white rounded-lg shadow-lg p-6" style="display: none;">
+                <h2 class="text-2xl font-bold mb-4">💰 結算報告</h2>
+                <div id="settlementList" class="space-y-3"></div>
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-700">
+                        💡 <strong>正數</strong>表示別人欠你錢，<strong>負數</strong>表示你欠別人錢
+                    </p>
                 </div>
-
-                <!-- 費用管理 -->
-                <div class="expenses-section">
-                    <h3><i class="fas fa-receipt"></i> 費用管理</h3>
-                    <form id="addExpenseForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>描述：</label>
-                                <input type="text" id="expenseDesc" placeholder="例如：酒店住宿" required>
-                            </div>
-                            <div class="form-group">
-                                <label>金額：</label>
-                                <input type="number" id="expenseAmount" min="0" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label>付款人：</label>
-                                <select id="expensePayer" required></select>
-                            </div>
-                            <div class="form-group">
-                                <label>分攤方式：</label>
-                                <select id="expenseSplit">
-                                    <option value="equal">平均分攤</option>
-                                    <option value="custom">自訂分攤</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div id="customSplitArea" class="custom-split" style="display: none;">
-                            <p class="hint">自訂分攤：為需要分攤的成員填寫權重（例如人頭數或比例），未填寫者不分攤。</p>
-                            <div id="customSplitFields" class="custom-split-fields"></div>
-                        </div>
-                        <button type="submit" class="btn-primary">
-                            <i class="fas fa-plus"></i> 新增費用
-                        </button>
-                    </form>
-                    <div id="expensesList" class="expenses-list"></div>
-                </div>
-
-                <!-- 結算結果 -->
-                <div class="settlement-section">
-                    <h3><i class="fas fa-calculator"></i> 結算結果</h3>
-                    <div id="settlementResult"></div>
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <p>&copy; 2026 香港旅遊分帳計算器 | 安全分帳，輕鬆旅遊</p>
-        </footer>
-    </div>
-
-    <!-- 模態框 -->
-    <div id="modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="modalBody"></div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="app.js"></script>
+    <script>
+        let members = [];
+        let expenses = [];
+
+        // 載入資料
+        function loadData() {
+            const savedMembers = localStorage.getItem('hk-trip-members');
+            const savedExpenses = localStorage.getItem('hk-trip-expenses');
+            
+            if (savedMembers) members = JSON.parse(savedMembers);
+            if (savedExpenses) expenses = JSON.parse(savedExpenses);
+            
+            render();
+        }
+
+        // 儲存資料
+        function saveData() {
+            localStorage.setItem('hk-trip-members', JSON.stringify(members));
+            localStorage.setItem('hk-trip-expenses', JSON.stringify(expenses));
+        }
+
+        // 新增成員
+        function addMember() {
+            const input = document.getElementById('newMemberInput');
+            const name = input.value.trim();
+            
+            if (name) {
+                members.push({ id: Date.now(), name: name });
+                input.value = '';
+                saveData();
+                render();
+            }
+        }
+
+        // 刪除成員
+        function deleteMember(id) {
+            if (confirm('確定要刪除此成員？')) {
+                members = members.filter(m => m.id !== id);
+                saveData();
+                render();
+            }
+        }
+
+        // 新增開支
+        function addExpense() {
+            const payer = document.getElementById('payerSelect').value;
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            const description = document.getElementById('descriptionInput').value.trim();
+            
+            const checkboxes = document.querySelectorAll('#sharedByList input[type="checkbox"]:checked');
+            const sharedBy = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (!payer || !amount || !description) {
+                alert('請填寫完整資料');
+                return;
+            }
+            if (sharedBy.length === 0) {
+                alert('請選擇分攤的人');
+                return;
+            }
+            
+            expenses.push({
+                id: Date.now(),
+                payer: payer,
+                amount: amount,
+                description: description,
+                sharedBy: sharedBy,
+                date: new Date().toLocaleString('zh-TW')
+            });
+            
+            document.getElementById('payerSelect').value = '';
+            document.getElementById('amountInput').value = '';
+            document.getElementById('descriptionInput').value = '';
+            document.querySelectorAll('#sharedByList input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            saveData();
+            render();
+        }
+
+        // 刪除開支
+        function deleteExpense(id) {
+            if (confirm('確定要刪除此筆開支？')) {
+                expenses = expenses.filter(e => e.id !== id);
+                saveData();
+                render();
+            }
+        }
+
+        // 計算結算
+        function calculateSettlement() {
+            const balances = {};
+            members.forEach(m => balances[m.name] = 0);
+            
+            expenses.forEach(expense => {
+                const perPerson = expense.amount / expense.sharedBy.length;
+                balances[expense.payer] += expense.amount;
+                expense.sharedBy.forEach(person => {
+                    balances[person] -= perPerson;
+                });
+            });
+            
+            return balances;
+        }
+
+        // 渲染畫面
+        function render() {
+            // 總金額
+            const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+            document.getElementById('totalExpense').textContent = `HK$ ${total.toFixed(2)}`;
+            
+            // 成員列表
+            const membersList = document.getElementById('membersList');
+            membersList.innerHTML = members.map(m => `
+                <div class="bg-blue-100 px-4 py-2 rounded-full flex items-center gap-2">
+                    <span>${m.name}</span>
+                    <button onclick="deleteMember(${m.id})" class="text-red-500 hover:text-red-700">
+                        🗑️
+                    </button>
+                </div>
+            `).join('');
+            
+            // 付款人選單
+            const payerSelect = document.getElementById('payerSelect');
+            payerSelect.innerHTML = '<option value="">選擇付款人</option>' + 
+                members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+            
+            // 分攤人選單
+            const sharedByList = document.getElementById('sharedByList');
+            sharedByList.innerHTML = members.map(m => `
+                <label class="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-200">
+                    <input type="checkbox" value="${m.name}" class="w-4 h-4">
+                    <span>${m.name}</span>
+                </label>
+            `).join('');
+            
+            // 顯示/隱藏表單
+            document.getElementById('expenseForm').style.display = members.length > 0 ? 'block' : 'none';
+            
+            // 開支列表
+            if (expenses.length > 0) {
+                document.getElementById('expensesSection').style.display = 'block';
+                const expensesList = document.getElementById('expensesList');
+                expensesList.innerHTML = expenses.map(e => `
+                    <div class="border-l-4 border-blue-500 bg-gray-50 p-4 rounded">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium text-lg">${e.description}</p>
+                                <p class="text-sm text-gray-600">${e.payer} 付款 · ${e.date}</p>
+                                <p class="text-sm text-gray-600">分攤：${e.sharedBy.join(', ')}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <p class="text-xl font-bold text-green-600">HK$ ${e.amount.toFixed(2)}</p>
+                                <button onclick="deleteExpense(${e.id})" class="text-red-500 hover:text-red-700">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('expensesSection').style.display = 'none';
+            }
+            
+            // 結算
+            if (members.length > 0 && expenses.length > 0) {
+                document.getElementById('settlementSection').style.display = 'block';
+                const balances = calculateSettlement();
+                const settlementList = document.getElementById('settlementList');
+                settlementList.innerHTML = members.map(m => {
+                    const balance = balances[m.name];
+                    const colorClass = balance > 0 ? 'text-green-600' : balance < 0 ? 'text-red-600' : 'text-gray-600';
+                    return `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <span class="font-medium">${m.name}</span>
+                            <span class="text-lg font-bold ${colorClass}">
+                                ${balance > 0 ? '+' : ''}${balance.toFixed(2)} HKD
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                document.getElementById('settlementSection').style.display = 'none';
+            }
+        }
+
+        // Enter 鍵新增成員
+        document.getElementById('newMemberInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addMember();
+        });
+
+        // 初始化
+        loadData();
+    </script>
 </body>
 </html>

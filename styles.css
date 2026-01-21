@@ -6,9 +6,10 @@
 }
 
 body {
+    /* 淺粉色背景，更有呼吸感 */
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-    background: #FFB7C5;
-    color: #FB6F92;
+    background: #fff0f3; 
+    color: #ff4d6d;
     line-height: 1.6;
     padding: 20px;
 }
@@ -17,8 +18,10 @@ body {
     max-width: 1080px;
     margin: 0 auto;
     background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    /* 更圓潤的圓角 */
+    border-radius: 24px;
+    /* 柔和的粉色陰影 */
+    box-shadow: 0 10px 40px rgba(255, 182, 193, 0.3);
     padding: 28px;
 }
 
@@ -28,25 +31,28 @@ header {
 }
 
 header h1 {
-    font-size: 28px;
-    color: #1f3a93;
+    font-size: 30px;
+    /* 莓果色標題 */
+    color: #ff4d6d;
     margin-bottom: 8px;
+    font-weight: 800;
 }
 
 header p {
-    color: #607d8b;
+    color: #ff8fa3;
 }
 
 main section {
     margin-bottom: 24px;
     padding: 20px;
-    border: 1px solid #e0e6ed;
-    border-radius: 12px;
-    background: #fbfdff;
+    /* 淺淺的粉色邊框 */
+    border: 2px solid #ffe5ec;
+    border-radius: 20px;
+    background: #fffbff;
 }
 
 h2, h3 {
-    color: #1f3a93;
+    color: #ff4d6d;
     margin-bottom: 12px;
 }
 
@@ -57,7 +63,7 @@ h2, h3 {
 label {
     display: block;
     margin-bottom: 6px;
-    color: #455a64;
+    color: #c9184a;
     font-weight: 600;
 }
 
@@ -69,52 +75,56 @@ input[type="text"],
 input[type="number"],
 select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cfd8dc;
-    border-radius: 10px;
+    padding: 12px 16px;
+    border: 2px solid #ffdeeb;
+    border-radius: 15px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s;
+    background-color: #ffffff;
 }
 
 input:focus,
 select:focus {
-    border-color: #1f3a93;
-    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.12);
+    border-color: #ff758f;
+    box-shadow: 0 0 0 4px rgba(255, 117, 143, 0.15);
 }
 
 .btn-primary,
 .btn-secondary {
     border: none;
-    border-radius: 10px;
-    padding: 10px 14px;
+    border-radius: 15px;
+    padding: 12px 18px;
     cursor: pointer;
     color: #fff;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: all 0.2s ease;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #1f3a93, #2980b9);
-    box-shadow: 0 6px 14px rgba(31, 58, 147, 0.2);
+    /* 草莓漸層 */
+    background: linear-gradient(135deg, #ff758f, #ffb3c1);
+    box-shadow: 0 6px 15px rgba(255, 117, 143, 0.3);
 }
 
 .btn-secondary {
-    background: #607d8b;
-    box-shadow: 0 6px 14px rgba(96, 125, 139, 0.2);
+    /* 藕粉色次要按鈕 */
+    background: #ffb3c1;
+    box-shadow: 0 6px 15px rgba(255, 179, 193, 0.3);
 }
 
 .btn-primary:hover,
 .btn-secondary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 77, 109, 0.25);
+    filter: brightness(1.05);
 }
 
 .form-row {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
@@ -132,81 +142,87 @@ select:focus {
 .expenses-list,
 #groupsList {
     display: grid;
-    gap: 10px;
+    gap: 12px;
     margin-top: 12px;
 }
 
 .member-card,
 .expense-card,
 .group-card {
-    border: 1px solid #e0e6ed;
-    border-radius: 10px;
-    padding: 12px;
+    border: 2px solid #fff0f3;
+    border-radius: 15px;
+    padding: 14px;
     background: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: border-color 0.2s;
 }
 
-.member-card .actions button,
-.expense-card .actions button,
-.group-card .actions button {
-    margin-left: 8px;
+.member-card:hover {
+    border-color: #ffb3c1;
 }
 
 .settlement-section {
-    background: #f7f9fc;
+    background: #fff8f9;
 }
 
 .settlement-item {
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #e0e6ed;
-    margin-bottom: 8px;
+    padding: 12px 16px;
+    border-radius: 15px;
+    border: 1px solid #ffdeeb;
+    margin-bottom: 10px;
     background: #fff;
+    color: #590d22;
 }
 
 .badge {
     display: inline-block;
-    padding: 4px 8px;
-    border-radius: 8px;
+    padding: 4px 10px;
+    border-radius: 10px;
     font-size: 12px;
-    background: #e8eef5;
-    color: #1f3a93;
+    background: #ffe5ec;
+    color: #ff4d6d;
+    font-weight: bold;
     margin-left: 8px;
 }
 
 .share-section {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    background: #fff0f3;
+    padding: 15px;
+    border-radius: 15px;
 }
 
 .share-url {
-    background: #f1f5f9;
-    padding: 8px 10px;
-    border-radius: 8px;
-    font-size: 12px;
+    background: #ffffff;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #ff758f;
     word-break: break-all;
-    border: 1px dashed #cfd8dc;
+    border: 2px dashed #ffb3c1;
 }
 
 .hint {
-    color: #607d8b;
+    color: #ff8fa3;
     font-size: 14px;
     margin-bottom: 8px;
+    font-style: italic;
 }
 
 .custom-split-fields {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 8px;
+    gap: 10px;
 }
 
 .custom-split .split-field {
-    border: 1px solid #e0e6ed;
-    border-radius: 10px;
-    padding: 10px;
+    border: 2px solid #fff0f3;
+    border-radius: 15px;
+    padding: 12px;
     background: #ffffff;
 }
 
@@ -216,40 +232,46 @@ select:focus {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(89, 13, 34, 0.4); /* 深紅色調的透明背景 */
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 99;
+    backdrop-filter: blur(4px); /* 背景模糊，更有高級感 */
 }
 
 .modal-content {
     background: #fff;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 24px;
+    border-radius: 24px;
     max-width: 500px;
-    width: 90%;
+    width: 92%;
     position: relative;
+    border: 4px solid #ffe5ec;
 }
 
 .modal .close {
     position: absolute;
-    right: 14px;
-    top: 12px;
-    font-size: 22px;
+    right: 18px;
+    top: 14px;
+    font-size: 24px;
     cursor: pointer;
+    color: #ff8fa3;
 }
 
 footer {
     text-align: center;
-    color: #90a4ae;
-    margin-top: 16px;
+    color: #ffb3c1;
+    margin-top: 24px;
     font-size: 14px;
+    font-weight: 500;
 }
 
+/* 針對移動端的小調整 */
 @media (max-width: 640px) {
     .container {
-        padding: 18px;
+        padding: 20px;
+        border-radius: 0; /* 手機端填滿畫面 */
     }
 
     .form-row {
@@ -258,6 +280,6 @@ footer {
 
     .share-section {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
     }
 }

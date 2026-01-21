@@ -1,0 +1,263 @@
+/* Reset and base styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: #f4f6fb;
+    color: #2c3e50;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1080px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 28px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+header h1 {
+    font-size: 28px;
+    color: #1f3a93;
+    margin-bottom: 8px;
+}
+
+header p {
+    color: #607d8b;
+}
+
+main section {
+    margin-bottom: 24px;
+    padding: 20px;
+    border: 1px solid #e0e6ed;
+    border-radius: 12px;
+    background: #fbfdff;
+}
+
+h2, h3 {
+    color: #1f3a93;
+    margin-bottom: 12px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    color: #455a64;
+    font-weight: 600;
+}
+
+input, select, button {
+    font: inherit;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+select:focus {
+    border-color: #1f3a93;
+    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.12);
+}
+
+.btn-primary,
+.btn-secondary {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1f3a93, #2980b9);
+    box-shadow: 0 6px 14px rgba(31, 58, 147, 0.2);
+}
+
+.btn-secondary {
+    background: #607d8b;
+    box-shadow: 0 6px 14px rgba(96, 125, 139, 0.2);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.form-row input {
+    flex: 1;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.members-list,
+.expenses-list,
+#groupsList {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.member-card,
+.expense-card,
+.group-card {
+    border: 1px solid #e0e6ed;
+    border-radius: 10px;
+    padding: 12px;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.member-card .actions button,
+.expense-card .actions button,
+.group-card .actions button {
+    margin-left: 8px;
+}
+
+.settlement-section {
+    background: #f7f9fc;
+}
+
+.settlement-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e0e6ed;
+    margin-bottom: 8px;
+    background: #fff;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: #e8eef5;
+    color: #1f3a93;
+    margin-left: 8px;
+}
+
+.share-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.share-url {
+    background: #f1f5f9;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    word-break: break-all;
+    border: 1px dashed #cfd8dc;
+}
+
+.hint {
+    color: #607d8b;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.custom-split-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.custom-split .split-field {
+    border: 1px solid #e0e6ed;
+    border-radius: 10px;
+    padding: 10px;
+    background: #ffffff;
+}
+
+.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+}
+
+.modal .close {
+    position: absolute;
+    right: 14px;
+    top: 12px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    color: #90a4ae;
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 18px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .share-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

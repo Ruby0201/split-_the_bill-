@@ -322,9 +322,11 @@
             settlementResult.textContent = "大家都清帳囉！";
             return;
         }
+        // 找到這一段並修改：
         transfers.forEach((t) => {
             const row = createEl("div", "settlement-item");
-            row.textContent = `${t.from} 支付給 ${t.to}：${group.currency} ${t.amount.toFixed(2)}`;
+            // 加上小箭頭或愛心圖示
+            row.innerHTML = `<strong>${t.from}</strong> <i class="fas fa-long-arrow-alt-right" style="color: #ffb3c1"></i> 支付給 <strong>${t.to}</strong>：<br><span style="color: #ff4d6d; font-size: 1.1em; font-weight: bold;">${group.currency} ${t.amount.toFixed(2)}</span>`;
             settlementResult.appendChild(row);
         });
 

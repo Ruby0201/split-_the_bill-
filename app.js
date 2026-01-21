@@ -43,10 +43,15 @@
             const raw = localStorage.getItem(STORAGE_KEY);
             groups = raw ? JSON.parse(raw) : [];
         } catch (e) {
-            console.error("load groups failed", e);
             groups = [];
         }
         renderGroups();
+    
+        // 新增下面這段：自動打開上次的群組
+        const lastId = localStorage.getItem("hk-last-group-id");
+        if (lastId && groups.some(g => g.id === lastId)) {
+            openGroup(lastId);
+        }
     }
 
     function saveGroups() {
@@ -88,6 +93,7 @@
 
     function openGroup(id) {
         currentGroupId = id;
+        localStorage.setItem("hk-last-group-id", id); // 新增這行：記住最後點開的 ID
         const group = getCurrentGroup();
         if (!group) return;
         currentGroupName.textContent = `${group.name}（${group.currency}）`;
@@ -96,7 +102,6 @@
         renderExpenses();
         renderCustomSplitFields();
         renderSettlement();
-        shareUrl.style.display = "none";
     }
 
     function getCurrentGroup() {

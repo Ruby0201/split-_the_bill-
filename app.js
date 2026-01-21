@@ -328,10 +328,6 @@
             settlementResult.appendChild(row);
         });
 
-        // For transparency
-        const detail = createEl("div", "hint");
-        detail.textContent = `淨額狀態：債務 ${debtors.length} 人，債權 ${creditors.length} 人。`;
-        settlementResult.appendChild(detail);
     }
 
     function settleBalances(members) {

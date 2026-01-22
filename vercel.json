@@ -1,19 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/group.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/group.py": {
+      "runtime": "python3.9"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/group",
-      "dest": "api/group.py"
+      "source": "/api/group",
+      "destination": "/api/group"
     },
     {
-      "src": "/api/group/(.*)",
-      "dest": "api/group.py"
+      "source": "/api/group/(.*)",
+      "destination": "/api/group"
     }
   ]
 }

@@ -63,19 +63,50 @@ def init_db():
 def handler(request):
     # #region agent log
     import json as json_module
+    import time
     try:
         with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-            f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:63','message':'Handler entry','data':{'request_type':str(type(request)),'request_keys':list(request.keys()) if isinstance(request,dict) else 'not_dict'},'timestamp':int(__import__('time').time()*1000)})+'\n')
-    except: pass
+            req_info = {
+                'request_type': str(type(request)),
+                'is_dict': isinstance(request, dict),
+                'request_keys': list(request.keys()) if isinstance(request, dict) else 'not_dict',
+                'request_str': str(request)[:500],
+                'request_repr': repr(request)[:500]
+            }
+            f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:63','message':'Handler entry','data':req_info,'timestamp':int(time.time()*1000)})+'\n')
+    except Exception as log_err: 
+        try:
+            with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:70','message':'Log error','data':{'error':str(log_err)},'timestamp':int(time.time()*1000)})+'\n')
+        except: pass
     # #endregion
     try:
-        method = request.get('method', 'GET') if isinstance(request, dict) else getattr(request, 'method', 'GET')
-        path = request.get('path', '') if isinstance(request, dict) else getattr(request, 'path', '')
-        body = request.get('body', '{}') if isinstance(request, dict) else (getattr(request, 'body', '{}') if hasattr(request, 'body') else '{}')
+        # Vercel Python runtime 可能使用不同的格式
+        # 嘗試多種格式來解析 request
+        method = 'GET'
+        path = ''
+        body = '{}'
+        headers = {}
+        
+        if isinstance(request, dict):
+            method = request.get('method', request.get('httpMethod', 'GET')).upper()
+            path = request.get('path', request.get('pathname', request.get('url', '')))
+            body = request.get('body', request.get('rawBody', '{}'))
+            headers = request.get('headers', {})
+        elif hasattr(request, '__dict__'):
+            # 如果是物件，嘗試取得屬性
+            method = getattr(request, 'method', getattr(request, 'httpMethod', 'GET')).upper()
+            path = getattr(request, 'path', getattr(request, 'pathname', getattr(request, 'url', '')))
+            body = getattr(request, 'body', getattr(request, 'rawBody', '{}'))
+            headers = getattr(request, 'headers', {})
+        
+        # 如果 path 包含查詢參數，移除它們
+        if '?' in path:
+            path = path.split('?')[0]
     # #region agent log
         try:
             with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-                f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:68','message':'Request parsed','data':{'method':method,'path':path,'body_length':len(str(body))},'timestamp':int(__import__('time').time()*1000)})+'\n')
+                f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:75','message':'Request parsed','data':{'method':method,'path':path,'body_length':len(str(body)),'body_preview':str(body)[:100]},'timestamp':int(time.time()*1000)})+'\n')
         except: pass
     # #endregion
         
@@ -194,8 +225,9 @@ def get_group(group_id):
             exp['desc'] = exp.pop('description')
             # #region agent log
             try:
+                import time
                 with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'B','location':'api/group.py:164','message':'Processing expense weights','data':{'weights_type':str(type(exp.get('weights'))),'weights_value':str(exp.get('weights'))[:100]},'timestamp':int(__import__('time').time()*1000)})+'\n')
+                    f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'B','location':'api/group.py:200','message':'Processing expense weights','data':{'weights_type':str(type(exp.get('weights'))),'weights_value':str(exp.get('weights'))[:100]},'timestamp':int(time.time()*1000)})+'\n')
             except: pass
             # #endregion
             weights_val = exp.get('weights')
@@ -204,10 +236,18 @@ def get_group(group_id):
             elif isinstance(weights_val, str):
                 try:
                     exp['weights'] = json.loads(weights_val)
-                except:
+                except Exception as parse_err:
+                    # #region agent log
+                    try:
+                        import time
+                        with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                            f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'B','location':'api/group.py:210','message':'JSON parse error for weights','data':{'error':str(parse_err),'weights_str':str(weights_val)[:100]},'timestamp':int(time.time()*1000)})+'\n')
+                    except: pass
+                    # #endregion
                     exp['weights'] = []
             else:
-                exp['weights'] = weights_val
+                # psycopg2 會自動將 JSONB 轉換為 Python dict/list
+                exp['weights'] = weights_val if isinstance(weights_val, (list, dict)) else []
             expenses.append(exp)
         
         cur.close()

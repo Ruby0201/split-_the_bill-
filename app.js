@@ -85,10 +85,14 @@
         renderGroups();
     }
 
-    function openGroup(id) {
+    // 修改 app.js
+    async function openGroup(id) { // 加上 async
         currentGroupId = id;
-        const group = getCurrentGroup();
+        
+        // 1. 先顯示本地資料 (為了使用者體驗)
+        let group = getCurrentGroup();
         if (!group) return;
+        
         currentGroupName.textContent = `${group.name}（${group.currency}）`;
         splitInterface.style.display = "block";
         renderMembers();
@@ -96,6 +100,28 @@
         renderCustomSplitFields();
         renderSettlement();
         loadShareUrl();
+    
+        // 2. [新增] 背景非同步獲取伺服器最新資料並更新
+        try {
+            const response = await fetch(`${API_BASE}/api/group/${group.serverId}`);
+            if (response.ok) {
+                const serverData = await response.json();
+                
+                // 更新本地 group 物件
+                group.name = serverData.name;
+                group.currency = serverData.currency;
+                group.members = serverData.members;
+                group.expenses = serverData.expenses; // 這裡需要上面的 Backend Fix 1 才能正確運作
+                
+                // 儲存並重新渲染
+                saveGroups();
+                renderMembers();
+                renderExpenses();
+                renderSettlement();
+            }
+        } catch (e) {
+            console.error("無法同步伺服器最新資料", e);
+        }
     }
 
     function getCurrentGroup() {

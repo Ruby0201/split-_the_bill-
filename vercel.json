@@ -1,13 +1,1 @@
-{
-  "functions": {
-    "api/group.py": {
-      "runtime": "@vercel/python"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/group.py"
-    }
-  ]
-}
+{}

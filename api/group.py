@@ -102,6 +102,21 @@ def handler(request):
         print(f"[DEBUG] Final parsed - method: {method}, path: {path}, body_length: {len(str(body))}, body_preview: {str(body)[:100]}")
         # #endregion
         
+        # 處理 OPTIONS 請求（CORS 預檢）
+        if method == 'OPTIONS':
+            print("[DEBUG] Handling OPTIONS request")
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Max-Age': '3600'
+                },
+                'body': json.dumps({'message': 'OK'})
+            }
+        
         # 解析路徑
         if method == 'GET':
             if path.startswith('/api/group/'):
@@ -161,9 +176,28 @@ def handler(request):
                 return delete_expense(group_id, expense_id)
             return {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}
         
-        return {'statusCode': 405, 'body': json.dumps({'error': 'Method not allowed'})}
+        # 如果沒有匹配到任何路由，返回 405
+        print(f"[DEBUG] Method not handled - method: {method}, path: {path}")
+        return {
+            'statusCode': 405,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': f'Method {method} not allowed for path {path}'})
+        }
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+        import traceback
+        error_msg = f"[ERROR] Handler exception: {str(e)}, traceback: {traceback.format_exc()[:500]}"
+        print(error_msg)
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': str(e)})
+        }
 
 def send_json(data, status=200):
     return {

@@ -61,10 +61,23 @@ def init_db():
         print(f"Init DB error: {e}")
 
 def handler(request):
+    # #region agent log
+    import json as json_module
     try:
-        method = request.get('method', 'GET')
-        path = request.get('path', '')
-        body = request.get('body', '{}')
+        with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+            f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:63','message':'Handler entry','data':{'request_type':str(type(request)),'request_keys':list(request.keys()) if isinstance(request,dict) else 'not_dict'},'timestamp':int(__import__('time').time()*1000)})+'\n')
+    except: pass
+    # #endregion
+    try:
+        method = request.get('method', 'GET') if isinstance(request, dict) else getattr(request, 'method', 'GET')
+        path = request.get('path', '') if isinstance(request, dict) else getattr(request, 'path', '')
+        body = request.get('body', '{}') if isinstance(request, dict) else (getattr(request, 'body', '{}') if hasattr(request, 'body') else '{}')
+    # #region agent log
+        try:
+            with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:68','message':'Request parsed','data':{'method':method,'path':path,'body_length':len(str(body))},'timestamp':int(__import__('time').time()*1000)})+'\n')
+        except: pass
+    # #endregion
         
         # 解析路徑
         if method == 'GET':
@@ -75,15 +88,33 @@ def handler(request):
             return {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}
         
         elif method == 'POST':
+            # #region agent log
+            try:
+                with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'C','location':'api/group.py:77','message':'POST request path parsing','data':{'path':path,'parts':path.split('/')},'timestamp':int(__import__('time').time()*1000)})+'\n')
+            except: pass
+            # #endregion
             if path == '/api/group':
                 return create_group(body)
             elif '/api/group/' in path and '/member' in path:
                 parts = path.split('/')
                 group_id = parts[3] if len(parts) > 3 else None
+                # #region agent log
+                try:
+                    with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'C','location':'api/group.py:85','message':'Extracted group_id for member','data':{'group_id':group_id,'parts':parts},'timestamp':int(__import__('time').time()*1000)})+'\n')
+                except: pass
+                # #endregion
                 return add_member(group_id, body)
             elif '/api/group/' in path and '/expense' in path:
                 parts = path.split('/')
                 group_id = parts[3] if len(parts) > 3 else None
+                # #region agent log
+                try:
+                    with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                        f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'C','location':'api/group.py:91','message':'Extracted group_id for expense','data':{'group_id':group_id,'parts':parts},'timestamp':int(__import__('time').time()*1000)})+'\n')
+                except: pass
+                # #endregion
                 return add_expense(group_id, body)
             return {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}
         
@@ -161,7 +192,22 @@ def get_group(group_id):
         for row in cur.fetchall():
             exp = dict(row)
             exp['desc'] = exp.pop('description')
-            exp['weights'] = exp['weights'] if exp['weights'] else []
+            # #region agent log
+            try:
+                with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
+                    f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'B','location':'api/group.py:164','message':'Processing expense weights','data':{'weights_type':str(type(exp.get('weights'))),'weights_value':str(exp.get('weights'))[:100]},'timestamp':int(__import__('time').time()*1000)})+'\n')
+            except: pass
+            # #endregion
+            weights_val = exp.get('weights')
+            if weights_val is None:
+                exp['weights'] = []
+            elif isinstance(weights_val, str):
+                try:
+                    exp['weights'] = json.loads(weights_val)
+                except:
+                    exp['weights'] = []
+            else:
+                exp['weights'] = weights_val
             expenses.append(exp)
         
         cur.close()

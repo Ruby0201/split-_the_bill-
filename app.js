@@ -112,12 +112,21 @@
             return;
         }
         try {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/e01b1798-2517-4510-ab5f-f00b92108e0a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:114',message:'API call start',data:{url:`${API_BASE}/api/group`,method:'POST',name,currency},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
             const response = await fetch(`${API_BASE}/api/group`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, currency }),
             });
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/e01b1798-2517-4510-ab5f-f00b92108e0a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:123',message:'API response received',data:{status:response.status,statusText:response.statusText,ok:response.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
             const responseData = await response.json();
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/e01b1798-2517-4510-ab5f-f00b92108e0a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:126',message:'Response data parsed',data:{hasId:!!responseData.id,hasName:!!responseData.name,responseKeys:Object.keys(responseData)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+            // #endregion
             if (!response.ok) {
                 throw new Error(responseData.error || "建立失敗");
             }

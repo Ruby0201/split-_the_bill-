@@ -1,6 +1,5 @@
 (function () {
     const STORAGE_KEY = "hk-split-groups";
-    const LAST_ID_KEY = "hk-last-group-id"; // 專門記住最後開啟的群組 ID
 
     const $ = (id) => document.getElementById(id);
     const createEl = (tag, className, text) => {
@@ -11,243 +10,502 @@
     };
 
     const createId = () => `id_${crypto.getRandomValues(new Uint32Array(1))[0].toString(16)}`;
-    const escapeHtml = (str) => String(str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    const sanitizeText = (str) => (str || "").trim();
 
     let groups = [];
     let currentGroupId = null;
 
-    // DOM 元素
+    // DOM
     const createGroupForm = $("createGroupForm");
+    const groupNameInput = $("groupName");
+    const currencySelect = $("currency");
     const existingGroupsSection = $("existingGroups");
     const groupsList = $("groupsList");
     const splitInterface = $("splitInterface");
     const currentGroupName = $("currentGroupName");
+    const addMemberForm = $("addMemberForm");
+    const memberNameInput = $("memberName");
     const membersList = $("membersList");
+    const addExpenseForm = $("addExpenseForm");
+    const expenseDesc = $("expenseDesc");
+    const expenseAmount = $("expenseAmount");
+    const expensePayer = $("expensePayer");
+    const expenseSplit = $("expenseSplit");
+    const customSplitArea = $("customSplitArea");
+    const customSplitFields = $("customSplitFields");
     const expensesList = $("expensesList");
     const settlementResult = $("settlementResult");
+    const shareUrl = $("shareUrl");
 
-    // 1. 載入資料
     function loadGroups() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             groups = raw ? JSON.parse(raw) : [];
         } catch (e) {
+            console.error("load groups failed", e);
             groups = [];
         }
         renderGroups();
-
-        // 【自動記住】檢查上次是不是有打開過的群組
-        const lastId = localStorage.getItem(LAST_ID_KEY);
-        if (lastId && groups.some(g => g.id === lastId)) {
-            openGroup(lastId);
-        }
     }
 
     function saveGroups() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
     }
 
-    // 2. 顯示群組選單
     function renderGroups() {
         groupsList.innerHTML = "";
-        if (groups.length === 0) {
+        if (!groups.length) {
             existingGroupsSection.style.display = "none";
             return;
         }
         existingGroupsSection.style.display = "block";
-        
         groups.forEach((g) => {
             const card = createEl("div", "group-card");
-            card.innerHTML = `<div><strong>${escapeHtml(g.name)}</strong> <small>(${g.currency})</small></div>`;
-            
-            const btnGroup = createEl("div", "actions");
+            const info = createEl("div");
+            info.innerHTML = `<strong>${escapeHtml(g.name)}</strong> <span class="badge">${g.currency}</span>`;
+            const actions = createEl("div", "actions");
             const openBtn = createEl("button", "btn-secondary", "進入");
             openBtn.onclick = () => openGroup(g.id);
-            
             const delBtn = createEl("button", "btn-secondary", "刪除");
-            delBtn.style.backgroundColor = "#ffccd5"; // 淡淡的刪除色
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                if(confirm("確定要刪除整個群組嗎？資料不能復原喔！")) deleteGroup(g.id);
-            };
-
-            btnGroup.append(openBtn, delBtn);
-            card.appendChild(btnGroup);
+            delBtn.onclick = () => deleteGroup(g.id);
+            actions.append(openBtn, delBtn);
+            card.append(info, actions);
             groupsList.appendChild(card);
         });
     }
 
-    // 3. 開啟群組 (關鍵：記住當前 ID)
-    function openGroup(id) {
-        currentGroupId = id;
-        localStorage.setItem(LAST_ID_KEY, id); // 存入 LocalStorage
-        
-        const group = groups.find(g => g.id === id);
-        if (!group) return;
-
-        currentGroupName.textContent = `${group.name} (${group.currency})`;
-        splitInterface.style.display = "block";
-        
-        // 捲動到內容區，讓手機使用者知道已經開啟了
-        splitInterface.scrollIntoView({ behavior: 'smooth' });
-
-        renderMembers();
-        renderExpenses();
-        renderSettlement();
-    }
-
     function deleteGroup(id) {
-        groups = groups.filter(g => g.id !== id);
+        if (!confirm("確定要刪除這個群組嗎？")) return;
+        groups = groups.filter((g) => g.id !== id);
         if (currentGroupId === id) {
             currentGroupId = null;
-            localStorage.removeItem(LAST_ID_KEY);
             splitInterface.style.display = "none";
         }
         saveGroups();
         renderGroups();
     }
 
-    // 4. 新增群組
-    createGroupForm.addEventListener("submit", (e) => {
+    function openGroup(id) {
+        currentGroupId = id;
+        const group = getCurrentGroup();
+        if (!group) return;
+        currentGroupName.textContent = `${group.name}（${group.currency}）`;
+        splitInterface.style.display = "block";
+        renderMembers();
+        renderExpenses();
+        renderCustomSplitFields();
+        renderSettlement();
+        loadShareUrl();
+    }
+
+    function getCurrentGroup() {
+        return groups.find((g) => g.id === currentGroupId);
+    }
+
+    // Event: create group
+    createGroupForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const name = $("groupName").value.trim();
-        if (!name) return;
-
-        const newGroup = {
-            id: createId(),
-            name: name,
-            currency: $("currency").value,
-            members: [],
-            expenses: []
-        };
-
-        groups.push(newGroup);
-        saveGroups();
-        renderGroups();
-        openGroup(newGroup.id); // 新增完直接進入
-        createGroupForm.reset();
+        const name = sanitizeText(groupNameInput.value);
+        const currency = currencySelect.value;
+        if (!name) {
+            alert("請輸入群組名稱");
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE}/api/group`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, currency }),
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || "建立失敗");
+            }
+            const newGroup = {
+                id: createId(),
+                serverId: responseData.id,
+                name: responseData.name,
+                currency: responseData.currency,
+                members: [],
+                expenses: [],
+            };
+            groups.push(newGroup);
+            saveGroups();
+            renderGroups();
+            openGroup(newGroup.id);
+            createGroupForm.reset();
+            existingGroupsSection.style.display = "block";
+        } catch (err) {
+            console.error(err);
+            alert("建立群組失敗，請稍後再試");
+        }
     });
 
-    // --- 成員與費用邏輯 (保持原本的) ---
-
-    $("addMemberForm").addEventListener("submit", (e) => {
+    // Members
+    addMemberForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const name = $("memberName").value.trim();
-        const group = groups.find(g => g.id === currentGroupId);
-        if (!group || !name) return;
-
-        group.members.push({ id: createId(), name });
-        saveGroups();
-        renderMembers();
-        $("memberName").value = "";
+        const name = sanitizeText(memberNameInput.value);
+        const group = getCurrentGroup();
+        if (!group || !group.serverId) return;
+        if (!name) {
+            alert("請輸入成員姓名");
+            return;
+        }
+        const duplicate = group.members.find((m) => m.name.toLowerCase() === name.toLowerCase());
+        if (duplicate) {
+            alert("已有相同姓名的成員，請使用暱稱區分");
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE}/api/group/${group.serverId}/member`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || "新增失敗");
+            }
+            group.members.push({ id: responseData.id, name: responseData.name });
+            saveGroups();
+            await syncGroup(group);
+            renderMembers();
+            renderCustomSplitFields();
+            memberNameInput.value = "";
+        } catch (err) {
+            console.error(err);
+            alert("新增成員失敗，請稍後再試");
+        }
     });
 
     function renderMembers() {
-        const group = groups.find(g => g.id === currentGroupId);
+        membersList.innerHTML = "";
+        const group = getCurrentGroup();
         if (!group) return;
-        membersList.innerHTML = group.members.map(m => `
-            <div class="member-card">
-                ${escapeHtml(m.name)}
-                <button class="btn-secondary" onclick="window.removeMember('${m.id}')">刪除</button>
-            </div>
-        `).join('');
-        
-        const payerSelect = $("expensePayer");
-        payerSelect.innerHTML = group.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('') || '<option value="">請先新增成員</option>';
+        group.members.forEach((m) => {
+            const card = createEl("div", "member-card");
+            card.appendChild(createEl("div", "", escapeHtml(m.name)));
+            const actions = createEl("div", "actions");
+            const delBtn = createEl("button", "btn-secondary", "刪除");
+            delBtn.onclick = () => removeMember(m.id);
+            actions.append(delBtn);
+            card.appendChild(actions);
+            membersList.appendChild(card);
+        });
+        // payer select
+        expensePayer.innerHTML = "";
+        group.members.forEach((m) => {
+            const opt = createEl("option");
+            opt.value = m.id;
+            opt.textContent = m.name;
+            expensePayer.appendChild(opt);
+        });
+        if (!group.members.length) {
+            expensePayer.innerHTML = `<option value="">請先新增成員</option>`;
+        }
     }
 
-    window.removeMember = (memberId) => {
-        const group = groups.find(g => g.id === currentGroupId);
-        if (!group || !confirm("刪除成員會連同相關費用一起刪除喔！")) return;
-        group.members = group.members.filter(m => m.id !== memberId);
-        group.expenses = group.expenses.filter(ex => ex.payerId !== memberId);
-        saveGroups();
-        renderMembers();
-        renderExpenses();
-        renderSettlement();
-    };
+    async function removeMember(memberId) {
+        const group = getCurrentGroup();
+        if (!group || !group.serverId) return;
+        if (!confirm("刪除成員後，相關費用將一併移除，確定嗎？")) return;
+        try {
+            const response = await fetch(`${API_BASE}/api/group/${group.serverId}/member/${memberId}`, {
+                method: "DELETE",
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || "刪除失敗");
+            }
+            group.members = group.members.filter((m) => m.id !== memberId);
+            group.expenses = group.expenses.filter((ex) => ex.payerId !== memberId);
+            saveGroups();
+            await syncGroup(group);
+            renderMembers();
+            renderExpenses();
+            renderCustomSplitFields();
+            renderSettlement();
+        } catch (err) {
+            console.error(err);
+            alert("刪除成員失敗，請稍後再試");
+        }
+    }
 
-    $("addExpenseForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const group = groups.find(g => g.id === currentGroupId);
-        const amount = Number($("expenseAmount").value);
-        if (!group || amount <= 0) return;
+    // Expenses
+    expenseSplit.addEventListener("change", () => {
+        if (expenseSplit.value === "custom") {
+            customSplitArea.style.display = "block";
+            renderCustomSplitFields();
+        } else {
+            customSplitArea.style.display = "none";
+        }
+    });
 
-        group.expenses.push({
-            id: createId(),
-            desc: $("expenseDesc").value,
-            amount,
-            payerId: $("expensePayer").value,
-            splitType: "equal" // 簡化版預設平均分攤
+    function renderCustomSplitFields() {
+        const group = getCurrentGroup();
+        if (!group || expenseSplit.value !== "custom") return;
+        customSplitFields.innerHTML = "";
+        group.members.forEach((m) => {
+            const field = createEl("div", "split-field");
+            const label = createEl("label", "", m.name);
+            label.setAttribute("for", `weight_${m.id}`);
+            const input = createEl("input");
+            input.type = "number";
+            input.min = "0";
+            input.step = "0.01";
+            input.id = `weight_${m.id}`;
+            input.dataset.memberId = m.id;
+            input.placeholder = "權重 (可留空)";
+            field.append(label, input);
+            customSplitFields.appendChild(field);
         });
+    }
 
-        saveGroups();
-        renderExpenses();
-        renderSettlement();
-        $("addExpenseForm").reset();
+    addExpenseForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const group = getCurrentGroup();
+        if (!group || !group.serverId) return;
+        if (!group.members.length) {
+            alert("請先新增至少一位成員");
+            return;
+        }
+        const desc = sanitizeText(expenseDesc.value);
+        const amount = Number(expenseAmount.value);
+        const payerId = expensePayer.value;
+        const splitType = expenseSplit.value;
+        if (!desc || !amount || amount <= 0 || !payerId) {
+            alert("請填寫完整費用資訊且金額需大於 0");
+            return;
+        }
+        let weights = [];
+        if (splitType === "custom") {
+            const inputs = customSplitFields.querySelectorAll("input[data-member-id]");
+            weights = Array.from(inputs)
+                .map((el) => ({ memberId: el.dataset.memberId, weight: Number(el.value) || 0 }))
+                .filter((w) => w.weight > 0);
+            if (!weights.length) {
+                alert("自訂分攤至少需要一位有權重的成員");
+                return;
+            }
+        }
+        try {
+            const response = await fetch(`${API_BASE}/api/group/${group.serverId}/expense`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ desc, amount, payerId, splitType, weights }),
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || "新增失敗");
+            }
+            const expense = {
+                id: responseData.id,
+                desc: responseData.desc,
+                amount: responseData.amount,
+                payerId: responseData.payerId,
+                splitType: responseData.splitType,
+                weights: responseData.weights || [],
+            };
+            group.expenses.push(expense);
+            saveGroups();
+            await syncGroup(group);
+            renderExpenses();
+            renderSettlement();
+            addExpenseForm.reset();
+            customSplitArea.style.display = "none";
+        } catch (err) {
+            console.error(err);
+            alert("新增費用失敗，請稍後再試");
+        }
     });
 
     function renderExpenses() {
-        const group = groups.find(g => g.id === currentGroupId);
+        expensesList.innerHTML = "";
+        const group = getCurrentGroup();
         if (!group) return;
-        expensesList.innerHTML = group.expenses.map(ex => {
-            const payer = group.members.find(m => m.id === ex.payerId);
-            return `
-                <div class="expense-card">
-                    <div><strong>${escapeHtml(ex.desc)}</strong><br>${group.currency} ${ex.amount.toFixed(2)} (${payer ? payer.name : '?'})</div>
-                    <button class="btn-secondary" onclick="window.removeExpense('${ex.id}')">刪除</button>
-                </div>
-            `;
-        }).join('');
+        group.expenses.forEach((ex) => {
+            const card = createEl("div", "expense-card");
+            const info = createEl("div");
+            const payer = group.members.find((m) => m.id === ex.payerId);
+            const splitLabel = ex.splitType === "equal" ? "平均" : "自訂";
+            info.innerHTML = `<strong>${escapeHtml(ex.desc)}</strong><br>${group.currency} ${ex.amount.toFixed(2)} ・ 付款人：${escapeHtml(payer ? payer.name : "已移除")} ・ ${splitLabel}`;
+            const actions = createEl("div", "actions");
+            const delBtn = createEl("button", "btn-secondary", "刪除");
+            delBtn.onclick = () => removeExpense(ex.id);
+            actions.append(delBtn);
+            card.append(info, actions);
+            expensesList.appendChild(card);
+        });
     }
 
-    window.removeExpense = (id) => {
-        const group = groups.find(g => g.id === currentGroupId);
-        if (!group) return;
-        group.expenses = group.expenses.filter(e => e.id !== id);
-        saveGroups();
-        renderExpenses();
-        renderSettlement();
-    };
+    async function removeExpense(id) {
+        const group = getCurrentGroup();
+        if (!group || !group.serverId) return;
+        try {
+            const response = await fetch(`${API_BASE}/api/group/${group.serverId}/expense/${id}`, {
+                method: "DELETE",
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || "刪除失敗");
+            }
+            group.expenses = group.expenses.filter((e) => e.id !== id);
+            saveGroups();
+            await syncGroup(group);
+            renderExpenses();
+            renderSettlement();
+        } catch (err) {
+            console.error(err);
+            alert("刪除費用失敗，請稍後再試");
+        }
+    }
 
+    // 同步群組資料到伺服器
+    async function syncGroup(group) {
+        if (!group.serverId) return;
+        try {
+            await fetch(`${API_BASE}/api/group/${group.serverId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: group.name,
+                    currency: group.currency,
+                    members: group.members,
+                    expenses: group.expenses,
+                }),
+            });
+        } catch (err) {
+            console.error("同步失敗", err);
+        }
+    }
+
+    // Settlement
     function renderSettlement() {
         settlementResult.innerHTML = "";
-        const group = groups.find(g => g.id === currentGroupId);
-        if (!group || !group.expenses.length || !group.members.length) {
-            settlementResult.textContent = "尚無結算資料 ✨";
+        const group = getCurrentGroup();
+        if (!group) return;
+        if (!group.expenses.length || !group.members.length) {
+            settlementResult.textContent = "請新增成員與費用後再計算。";
             return;
         }
-
-        const balances = {};
-        group.members.forEach(m => balances[m.id] = 0);
-
-        group.expenses.forEach(ex => {
-            const share = ex.amount / group.members.length;
-            if (balances[ex.payerId] !== undefined) balances[ex.payerId] += ex.amount;
-            group.members.forEach(m => {
-                balances[m.id] -= share;
+        const membersMap = new Map(group.members.map((m) => [m.id, { ...m, balance: 0 }]));
+        group.expenses.forEach((ex) => {
+            const participants =
+                ex.splitType === "equal"
+                    ? group.members.map((m) => ({ memberId: m.id, weight: 1 }))
+                    : ex.weights;
+            const totalWeight = participants.reduce((sum, p) => sum + p.weight, 0);
+            if (!totalWeight) return;
+            const payer = membersMap.get(ex.payerId);
+            if (payer) payer.balance += ex.amount;
+            participants.forEach((p) => {
+                const member = membersMap.get(p.memberId);
+                if (!member) return;
+                const share = (ex.amount * p.weight) / totalWeight;
+                member.balance -= share;
             });
         });
 
-        const debtors = [], creditors = [];
-        for (let id in balances) {
-            const name = group.members.find(m => m.id === id)?.name;
-            if (balances[id] < -0.01) debtors.push({ name, amt: -balances[id] });
-            else if (balances[id] > 0.01) creditors.push({ name, amt: balances[id] });
+        const { transfers, debtors, creditors } = settleBalances([...membersMap.values()]);
+        if (!transfers.length) {
+            settlementResult.textContent = "大家都清帳囉！";
+            return;
         }
+        transfers.forEach((t) => {
+            const row = createEl("div", "settlement-item");
+            row.textContent = `${t.from} 支付給 ${t.to}：${group.currency} ${t.amount.toFixed(2)}`;
+            settlementResult.appendChild(row);
+        });
 
-        while (debtors.length && creditors.length) {
-            const d = debtors[0], c = creditors[0];
-            const pay = Math.min(d.amt, c.amt);
-            const item = createEl("div", "settlement-item", `${d.name} 支付給 ${c.name}：${group.currency} ${pay.toFixed(2)}`);
-            settlementResult.appendChild(item);
-            d.amt -= pay; c.amt -= pay;
-            if (d.amt <= 0.01) debtors.shift();
-            if (c.amt <= 0.01) creditors.shift();
-        }
-        if (!settlementResult.innerHTML) settlementResult.textContent = "大家帳目都清囉！💕";
+        // For transparency
+        const detail = createEl("div", "hint");
+        detail.textContent = `淨額狀態：債務 ${debtors.length} 人，債權 ${creditors.length} 人。`;
+        settlementResult.appendChild(detail);
     }
 
-    // 初始化
+    function settleBalances(members) {
+        const debtors = [];
+        const creditors = [];
+        members.forEach((m) => {
+            if (m.balance < -0.005) debtors.push({ name: m.name, balance: -m.balance });
+            else if (m.balance > 0.005) creditors.push({ name: m.name, balance: m.balance });
+        });
+        debtors.sort((a, b) => b.balance - a.balance);
+        creditors.sort((a, b) => b.balance - a.balance);
+        const transfers = [];
+        let i = 0,
+            j = 0;
+        while (i < debtors.length && j < creditors.length) {
+            const pay = Math.min(debtors[i].balance, creditors[j].balance);
+            transfers.push({ from: debtors[i].name, to: creditors[j].name, amount: pay });
+            debtors[i].balance -= pay;
+            creditors[j].balance -= pay;
+            if (debtors[i].balance < 0.005) i++;
+            if (creditors[j].balance < 0.005) j++;
+        }
+        return { transfers, debtors, creditors };
+    }
+
+    // API 基礎 URL
+    const API_BASE = window.location.origin;
+
+    // 載入分享連結
+    async function loadShareUrl() {
+        const group = getCurrentGroup();
+        if (!group || !group.serverId) return;
+        const url = `${API_BASE}/?id=${group.serverId}`;
+        shareUrl.style.display = "block";
+        shareUrl.innerHTML = `<strong>分享連結：</strong><br><a href="${url}" target="_blank">${url}</a> <button onclick="copyToClipboard('${url}')" class="btn-secondary" style="margin-left: 8px;">複製</button>`;
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard?.writeText(text).then(() => {
+            alert("連結已複製到剪貼簿！");
+        }).catch(() => {
+            alert("複製失敗，請手動複製連結");
+        });
+    }
+
+    // 從 URL 載入群組
+    async function tryLoadFromUrl() {
+        const params = new URLSearchParams(location.search);
+        const groupId = params.get("id");
+        if (!groupId) return;
+        try {
+            const response = await fetch(`${API_BASE}/api/group/${groupId}`);
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || "群組不存在");
+            }
+            const imported = {
+                id: createId(),
+                serverId: responseData.id,
+                name: responseData.name,
+                currency: responseData.currency || "HKD",
+                members: responseData.members || [],
+                expenses: responseData.expenses || [],
+            };
+            groups.push(imported);
+            saveGroups();
+            renderGroups();
+            openGroup(imported.id);
+        } catch (err) {
+            console.error(err);
+            alert("無法載入分享的群組資料：" + err.message);
+        }
+    }
+
+    function escapeHtml(str) {
+        const safe = String(str || "");
+        return safe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // init
     loadGroups();
+    tryLoadFromUrl();
 })();

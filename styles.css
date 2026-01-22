@@ -7,19 +7,21 @@
 
 body {
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-    background: #f4f6fb;
-    color: #2c3e50;
+    background: linear-gradient(135deg, #ffeef8 0%, #fff0f5 50%, #ffeef8 100%);
+    color: #5a2d4a;
     line-height: 1.6;
     padding: 20px;
+    min-height: 100vh;
 }
 
 .container {
     max-width: 1080px;
     margin: 0 auto;
     background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(255, 105, 180, 0.15);
     padding: 28px;
+    border: 1px solid rgba(255, 182, 193, 0.3);
 }
 
 header {
@@ -29,24 +31,25 @@ header {
 
 header h1 {
     font-size: 28px;
-    color: #1f3a93;
+    color: #d81b60;
     margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(216, 27, 96, 0.1);
 }
 
 header p {
-    color: #607d8b;
+    color: #c2185b;
 }
 
 main section {
     margin-bottom: 24px;
     padding: 20px;
-    border: 1px solid #e0e6ed;
-    border-radius: 12px;
-    background: #fbfdff;
+    border: 1px solid #ffc1cc;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff5f8 0%, #ffffff 100%);
 }
 
 h2, h3 {
-    color: #1f3a93;
+    color: #d81b60;
     margin-bottom: 12px;
 }
 
@@ -57,7 +60,7 @@ h2, h3 {
 label {
     display: block;
     margin-bottom: 6px;
-    color: #455a64;
+    color: #c2185b;
     font-weight: 600;
 }
 
@@ -70,16 +73,17 @@ input[type="number"],
 select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #cfd8dc;
-    border-radius: 10px;
+    border: 1px solid #ffb6c1;
+    border-radius: 12px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
 }
 
 input:focus,
 select:focus {
-    border-color: #1f3a93;
-    box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.12);
+    border-color: #ff69b4;
+    box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.15);
 }
 
 .btn-primary,
@@ -97,13 +101,13 @@ select:focus {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #1f3a93, #2980b9);
-    box-shadow: 0 6px 14px rgba(31, 58, 147, 0.2);
+    background: linear-gradient(135deg, #ff69b4, #ff1493);
+    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3);
 }
 
 .btn-secondary {
-    background: #607d8b;
-    box-shadow: 0 6px 14px rgba(96, 125, 139, 0.2);
+    background: linear-gradient(135deg, #ffb6c1, #ff91a4);
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.3);
 }
 
 .btn-primary:hover,
@@ -139,10 +143,10 @@ select:focus {
 .member-card,
 .expense-card,
 .group-card {
-    border: 1px solid #e0e6ed;
-    border-radius: 10px;
+    border: 1px solid #ffc1cc;
+    border-radius: 12px;
     padding: 12px;
-    background: #fff;
+    background: linear-gradient(135deg, #fff 0%, #fff5f8 100%);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -155,13 +159,13 @@ select:focus {
 }
 
 .settlement-section {
-    background: #f7f9fc;
+    background: linear-gradient(135deg, #fff5f8 0%, #ffeef8 100%);
 }
 
 .settlement-item {
     padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #e0e6ed;
+    border-radius: 12px;
+    border: 1px solid #ffc1cc;
     margin-bottom: 8px;
     background: #fff;
 }
@@ -171,8 +175,8 @@ select:focus {
     padding: 4px 8px;
     border-radius: 8px;
     font-size: 12px;
-    background: #e8eef5;
-    color: #1f3a93;
+    background: #ffe4e9;
+    color: #d81b60;
     margin-left: 8px;
 }
 
@@ -192,7 +196,7 @@ select:focus {
 }
 
 .hint {
-    color: #607d8b;
+    color: #c2185b;
     font-size: 14px;
     margin-bottom: 8px;
 }
@@ -204,10 +208,10 @@ select:focus {
 }
 
 .custom-split .split-field {
-    border: 1px solid #e0e6ed;
-    border-radius: 10px;
+    border: 1px solid #ffc1cc;
+    border-radius: 12px;
     padding: 10px;
-    background: #ffffff;
+    background: #fff;
 }
 
 .modal {
@@ -242,7 +246,7 @@ select:focus {
 
 footer {
     text-align: center;
-    color: #90a4ae;
+    color: #ff91a4;
     margin-top: 16px;
     font-size: 14px;
 }

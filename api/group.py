@@ -274,9 +274,15 @@ def get_group(group_id):
         # 取得費用
         cur.execute('SELECT * FROM expenses WHERE group_id = %s ORDER BY created_at', (group_id,))
         expenses = []
+        # 修改 group.py 約第 200 行附近的迴圈
         for row in cur.fetchall():
             exp = dict(row)
+            # 轉換欄位名稱以符合前端需求
             exp['desc'] = exp.pop('description')
+            exp['payerId'] = exp.pop('payer_id')      # 新增這行：將 payer_id 轉為 payerId
+            exp['splitType'] = exp.pop('split_type')  # 新增這行：將 split_type 轉為 splitType
+            
+            # ... 原有的 weights 處理邏輯 ...
             # #region agent log
             try:
                 import time

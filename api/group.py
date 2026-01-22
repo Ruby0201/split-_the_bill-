@@ -94,12 +94,13 @@ def handler(request):
         # 如果 path 包含查詢參數，移除它們
         if '?' in path:
             path = path.split('?')[0]
-    # #region agent log
-        try:
-            with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-                f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:75','message':'Request parsed','data':{'method':method,'path':path,'body_length':len(str(body)),'body_preview':str(body)[:100]},'timestamp':int(time.time()*1000)})+'\n')
-        except: pass
-    # #endregion
+        
+        # 標準化路徑（移除尾隨斜線）
+        path = path.rstrip('/')
+        
+        # #region agent log
+        print(f"[DEBUG] Final parsed - method: {method}, path: {path}, body_length: {len(str(body))}, body_preview: {str(body)[:100]}")
+        # #endregion
         
         # 解析路徑
         if method == 'GET':
@@ -107,13 +108,16 @@ def handler(request):
                 group_id = path.replace('/api/group/', '').split('/')[0]
                 if group_id:
                     return get_group(group_id)
+            elif path == '/api/group':
+                # GET /api/group 可能用於列出所有群組（目前不支援）
+                return {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}
             return {'statusCode': 404, 'body': json.dumps({'error': 'Not found'})}
         
         elif method == 'POST':
             # #region agent log
             print(f"[DEBUG] POST request - path: {path}, parts: {path.split('/')}")
             # #endregion
-            if path == '/api/group':
+            if path == '/api/group' or path == '/api/group/':
                 print(f"[DEBUG] Calling create_group with body: {str(body)[:200]}")
                 return create_group(body)
             elif '/api/group/' in path and '/member' in path:

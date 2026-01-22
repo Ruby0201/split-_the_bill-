@@ -1,3 +1,19 @@
 {
-  "version": 2
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/group.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/group",
+      "dest": "api/group.py"
+    },
+    {
+      "src": "/api/group/(.*)",
+      "dest": "api/group.py"
+    }
+  ]
 }

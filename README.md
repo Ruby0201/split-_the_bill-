@@ -1,10 +1,9 @@
 # 香港旅遊分帳計算器
 
-一個安全、美觀的旅遊分帳計算網頁應用程式，使用 Python + Vercel + PostgreSQL。
+使用 Python + Vercel + PostgreSQL。
 
 ## 功能特色
 
-- 🎀 少女粉主題設計
 - 👥 多人分帳計算
 - 💰 支援平均分攤和自訂權重分攤
 - 🔗 透過旅行團 ID 分享連結

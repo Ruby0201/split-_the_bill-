@@ -62,23 +62,10 @@ def init_db():
 
 def handler(request):
     # #region agent log
-    import json as json_module
-    import time
-    try:
-        with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-            req_info = {
-                'request_type': str(type(request)),
-                'is_dict': isinstance(request, dict),
-                'request_keys': list(request.keys()) if isinstance(request, dict) else 'not_dict',
-                'request_str': str(request)[:500],
-                'request_repr': repr(request)[:500]
-            }
-            f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:63','message':'Handler entry','data':req_info,'timestamp':int(time.time()*1000)})+'\n')
-    except Exception as log_err: 
-        try:
-            with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-                f.write(json_module.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'A','location':'api/group.py:70','message':'Log error','data':{'error':str(log_err)},'timestamp':int(time.time()*1000)})+'\n')
-        except: pass
+    print(f"[DEBUG] Handler entry - request type: {type(request)}, is_dict: {isinstance(request, dict)}")
+    if isinstance(request, dict):
+        print(f"[DEBUG] Request keys: {list(request.keys())}")
+        print(f"[DEBUG] Request preview: {str(request)[:500]}")
     # #endregion
     try:
         # Vercel Python runtime 可能使用不同的格式
@@ -91,8 +78,12 @@ def handler(request):
         if isinstance(request, dict):
             method = request.get('method', request.get('httpMethod', 'GET')).upper()
             path = request.get('path', request.get('pathname', request.get('url', '')))
-            body = request.get('body', request.get('rawBody', '{}'))
+            # Vercel 可能使用不同的 body 欄位名稱
+            body = request.get('body', request.get('rawBody', request.get('payload', '{}')))
             headers = request.get('headers', {})
+            # #region agent log
+            print(f"[DEBUG] Request parsed - method: {method}, path: {path}, body_keys: {list(request.keys())}, body_type: {type(body)}, body_preview: {str(body)[:200]}")
+            # #endregion
         elif hasattr(request, '__dict__'):
             # 如果是物件，嘗試取得屬性
             method = getattr(request, 'method', getattr(request, 'httpMethod', 'GET')).upper()
@@ -120,12 +111,10 @@ def handler(request):
         
         elif method == 'POST':
             # #region agent log
-            try:
-                with open('/Users/a60100/Documents/mine/.cursor/debug.log', 'a') as f:
-                    f.write(json.dumps({'sessionId':'debug-session','runId':'run1','hypothesisId':'C','location':'api/group.py:77','message':'POST request path parsing','data':{'path':path,'parts':path.split('/')},'timestamp':int(__import__('time').time()*1000)})+'\n')
-            except: pass
+            print(f"[DEBUG] POST request - path: {path}, parts: {path.split('/')}")
             # #endregion
             if path == '/api/group':
+                print(f"[DEBUG] Calling create_group with body: {str(body)[:200]}")
                 return create_group(body)
             elif '/api/group/' in path and '/member' in path:
                 parts = path.split('/')
@@ -183,11 +172,29 @@ def send_json(data, status=200):
     }
 
 def create_group(body):
+    # #region agent log
+    print(f"[DEBUG] create_group called with body type: {type(body)}, preview: {str(body)[:200]}")
+    # #endregion
     try:
+        # #region agent log
+        print("[DEBUG] Initializing DB")
+        # #endregion
         init_db()
+        
+        # #region agent log
+        print(f"[DEBUG] Parsing body, type: {type(body)}")
+        # #endregion
         data = json.loads(body) if isinstance(body, str) else body
         
+        # #region agent log
+        print(f"[DEBUG] Data parsed - has_name: {'name' in data}, name: {data.get('name', '')}, currency: {data.get('currency', '')}")
+        # #endregion
+        
         group_id = str(uuid.uuid4())
+        
+        # #region agent log
+        print(f"[DEBUG] Connecting to DB, group_id: {group_id}")
+        # #endregion
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
@@ -198,8 +205,17 @@ def create_group(body):
         cur.close()
         conn.close()
         
+        # #region agent log
+        print(f"[DEBUG] Group created successfully, group_id: {group_id}")
+        # #endregion
+        
         return send_json({'id': group_id, 'name': data['name'], 'currency': data.get('currency', 'HKD')})
     except Exception as e:
+        # #region agent log
+        import traceback
+        error_msg = f"[ERROR] create_group failed: {str(e)}, type: {type(e)}, traceback: {traceback.format_exc()[:500]}"
+        print(error_msg)
+        # #endregion
         return send_json({'error': str(e)}, 500)
 
 def get_group(group_id):

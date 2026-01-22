@@ -1,17 +1,13 @@
 {
-  "functions": {
-    "api/group.py": {
-      "runtime": "python3.9"
-    }
-  },
+  "version": 2,
   "rewrites": [
     {
       "source": "/api/group",
-      "destination": "/api/group"
+      "destination": "/api/group.py"
     },
     {
       "source": "/api/group/(.*)",
-      "destination": "/api/group"
+      "destination": "/api/group.py"
     }
   ]
 }
